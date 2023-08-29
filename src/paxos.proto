@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package paxospb;
+
+message BallotNum {
+    uint64 Ballot = 1;
+    string NodeId = 2;
+}
+
+message Phase1Request {
+    BallotNum ballot_num = 1;
+}
+
+message Phase1Reply {
+    BallotNum last_ballot = 1;
+    bytes v = 2;
+    BallotNum vbal = 3;
+}
+
+message Phase2Request {
+    BallotNum ballot_num = 1;
+    bytes v = 2;
+}
+
+message Phase2Reply {
+    bool ok = 1;
+}
+
