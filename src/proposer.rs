@@ -3,8 +3,6 @@ use std::sync::atomic::Ordering::SeqCst;
 
 use crate::paxospb::*;
 
-const MAX_RETRY: u64 = 3;
-
 pub struct Proposer {
     quorum: Vec<String>,
     // ballot
@@ -22,28 +20,18 @@ impl Proposer {
     }
 
     pub fn propose_v(&mut self, v: Vec<u8>) -> bool {
-        let mut proposing_v = None;
-        for _ in 0..MAX_RETRY {
-            let (new_v, ok) = self.propose_phase1();
-            if ok {
-                if let Some(new_v) = new_v {
-                    proposing_v = Some(new_v);
-                    break;
-                }
-            }
-        }
+        let mut proposing_v = v;
+        let (new_v, ok) = self.propose_phase1();
 
-        if proposing_v.is_none() {
+        if !ok {
             return false;
         }
 
-        for _ in 0..MAX_RETRY {
-            if self.propose_phase2(proposing_v.clone().unwrap()) {
-                return true;
-            }
+        if let Some(new_v) = new_v {
+            proposing_v = new_v;
         }
 
-        false
+        self.propose_phase2(proposing_v.clone())
     }
 
     /// repair v, start phase2?
